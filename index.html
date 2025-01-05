@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(45deg, #6ab1e7, #4377b5);
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .input-group select, .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-group select:focus, .input-group input:focus {
+            border-color: #4377b5;
+        }
+
+        .swap-btn {
+            display: block;
+            width: 100%;
+            padding: 0.8rem;
+            background: #4377b5;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin: 1rem 0;
+        }
+
+        .swap-btn:hover {
+            background: #3666a3;
+        }
+
+        .result {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+        }
+
+        .result p {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .result .rate {
+            color: #4377b5;
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Currency Converter</h1>
+        <div class="input-group">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" value="1" min="0" step="0.01">
+        </div>
+        <div class="input-group">
+            <label for="fromCurrency">From</label>
+            <select id="fromCurrency">
+                <option value="USD">USD - US Dollar</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="GBP">GBP - British Pound</option>
+                <option value="JPY">JPY - Japanese Yen</option>
+                <option value="AUD">AUD - Australian Dollar</option>
+                <option value="CAD">CAD - Canadian Dollar</option>
+                <option value="CHF">CHF - Swiss Franc</option>
+                <option value="CNY">CNY - Chinese Yuan</option>
+            </select>
+        </div>
+        <button class="swap-btn" onclick="swapCurrencies()">↑↓ Swap Currencies</button>
+        <div class="input-group">
+            <label for="toCurrency">To</label>
+            <select id="toCurrency">
+                <option value="EUR">EUR - Euro</option>
+                <option value="USD">USD - US Dollar</option>
+                <option value="GBP">GBP - British Pound</option>
+                <option value="JPY">JPY - Japanese Yen</option>
+                <option value="AUD">AUD - Australian Dollar</option>
+                <option value="CAD">CAD - Canadian Dollar</option>
+                <option value="CHF">CHF - Swiss Franc</option>
+                <option value="CNY">CNY - Chinese Yuan</option>
+            </select>
+        </div>
+        <div class="result">
+            <p>Converted Amount:</p>
+            <p class="rate" id="result">Calculating...</p>
+        </div>
+    </div>
+
+    <script>
+        // For demo purposes, using some fixed conversion rates
+        const conversionRates = {
+            USD: { EUR: 0.85, GBP: 0.73, JPY: 110.0, AUD: 1.35, CAD: 1.25, CHF: 0.92, CNY: 6.45 },
+            EUR: { USD: 1.18, GBP: 0.86, JPY: 129.5, AUD: 1.59, CAD: 1.47, CHF: 1.08, CNY: 7.59 },
+            GBP: { USD: 1.37, EUR: 1.16, JPY: 150.6, AUD: 1.85, CAD: 1.71, CHF: 1.26, CNY: 8.83 },
+            JPY: { USD: 0.0091, EUR: 0.0077, GBP: 0.0066, AUD: 0.012, CAD: 0.011, CHF: 0.0084, CNY: 0.059 },
+            AUD: { USD: 0.74, EUR: 0.63, GBP: 0.54, JPY: 81.5, CAD: 0.93, CHF: 0.68, CNY: 4.78 },
+            CAD: { USD: 0.80, EUR: 0.68, GBP: 0.58, JPY: 88.0, AUD: 1.08, CHF: 0.74, CNY: 5.16 },
+            CHF: { USD: 1.09, EUR: 0.93, GBP: 0.79, JPY: 119.6, AUD: 1.47, CAD: 1.36, CNY: 7.01 },
+            CNY: { USD: 0.15, EUR: 0.13, GBP: 0.11, JPY: 17.1, AUD: 0.21, CAD: 0.19, CHF: 0.14 }
+        };
+
+        // Add event listeners
+        document.getElementById('amount').addEventListener('input', convertCurrency);
+        document.getElementById('fromCurrency').addEventListener('change', convertCurrency);
+        document.getElementById('toCurrency').addEventListener('change', convertCurrency);
+
+        function swapCurrencies() {
+            const fromCurrency = document.getElementById('fromCurrency');
+            const toCurrency = document.getElementById('toCurrency');
+            const temp = fromCurrency.value;
+            fromCurrency.value = toCurrency.value;
+            toCurrency.value = temp;
+            convertCurrency();
+        }
+
+        function convertCurrency() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            
+            if (fromCurrency === toCurrency) {
+                document.getElementById('result').textContent = amount.toFixed(2) + ' ' + toCurrency;
+                return;
+            }
+
+            let rate;
+            if (fromCurrency === toCurrency) {
+                rate = 1;
+            } else {
+                rate = conversionRates[fromCurrency][toCurrency];
+            }
+
+            const result = amount * rate;
+            document.getElementById('result').textContent = result.toFixed(2) + ' ' + toCurrency;
+        }
+
+        // Initial conversion
+        convertCurrency();
+    </script>
+</body>
+</html>
